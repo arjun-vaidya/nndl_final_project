@@ -1,3 +1,4 @@
 shared
 /data
 /checkpoints
+prediction.csv
