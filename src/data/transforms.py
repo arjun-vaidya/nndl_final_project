@@ -1,12 +1,7 @@
-import torch
 from torchvision import transforms
+from src.utils.constants import MEAN, STD
 
-# img net stats
-# this normalizes the image with mean and std dev 1
-MEAN = [0.485, 0.456, 0.406]
-STD = [0.229, 0.224, 0.225]
-
-#split (str): 'train' or 'val'/'test'
+# train or (val or test)
 def get_transforms(split='train'):
     
     if split == 'train':
