@@ -1,0 +1,42 @@
+DUAL HEAD RESNET-18 ARCHITECTURE
+===============================================
+
+[ Input Image ] 
+(Batch, 3, 224, 224)
+       │
+       ▼
+[ ResNet-18 Backbone ]  <-- (Frozen/Unfrozen via methods)
+       │
+       ▼
+[ Feature Vector ]
+(Batch, 512)
+       │
+       ├──────────────────────────────┐
+       ▼                              ▼
+[ Superclass Head ]            [ Subclass Head ]
+(Linear: 512 -> 3)             (Linear: 512 -> 87)
+       │                              │
+       ▼                              ▼
+[ Softmax ]                    [ Softmax ]
+       │                              │
+[ Super Probs ]                [ Sub Probs ]
+(Batch, 3)                     (Batch, 87)
+       │                              │
+       ▼                              ▼
+[ ARGMAX & THRESHOLD ] <------- [ ARGMAX & THRESHOLD ]
+(If prob < 0.7 -> Novel -1)    (If prob < 0.7 -> Novel -1)
+       │                              │
+       │                              │
+       │                              │
+       └──────────────┬───────────────┘
+                      │
+                      ▼
+            [ CONSISTENCY CHECKER ]
+            (src/utils/mapping.py)
+                      │
+        Does Superclass match Subclass?
+           YES  │             │  NO
+                │             │
+                ▼             ▼
+        [ FINAL PREDS ]   [ FORCE SUBCLASS NOVEL (-1) ]
+        (Super, Sub)      (Super, -1)
