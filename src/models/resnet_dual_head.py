@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 from torchvision import models
+from tqdm import tqdm
 
 class DualHeadResNet(nn.Module):
 
@@ -54,18 +55,19 @@ class DualHeadResNet(nn.Module):
             max_super_probs, super_preds = torch.max(super_probs, dim=1)
             
             # 1. Superclass Confidence
-            # If confidence < threshold, predict Novel (Index -1)
+            # If confidence < threshold, predict Novel (Index 3)
             mask_novel_super = max_super_probs < threshold
-            super_preds[mask_novel_super] = -1
+            super_preds[mask_novel_super] = 3
             
             # 2. Subclass Confidence
-            # If subclass confidence < threshold, predict Novel (Index -1)
+            # If subclass confidence < threshold, predict Novel (Index 87)
             mask_novel_sub = max_sub_probs < threshold
-            sub_preds[mask_novel_sub] = -1
+            sub_preds[mask_novel_sub] = 87
             
-            # if either is Novel, both are Novel
-            sub_preds[mask_novel_super] = -1
-            super_preds[mask_novel_sub] = -1
+            # If Superclass is Novel, Subclass must be Novel
+            sub_preds[mask_novel_super] = 87
+            # If Subclass is Novel, Superclass must be Novel
+            super_preds[mask_novel_sub] = 3
 
             # Create a copy of sub_preds to potentially modify based on consistency check
             final_sub_preds = sub_preds.clone()
@@ -76,7 +78,7 @@ class DualHeadResNet(nn.Module):
             if mapping_consistency_check:
                 for i in range(len(x)):
                     # novel subclass
-                    if final_sub_preds[i] == -1:
+                    if final_sub_preds[i] == 87:
                         continue
 
                     # superclass and subclass values    
@@ -84,14 +86,15 @@ class DualHeadResNet(nn.Module):
                     sub_pred_item = sub_preds[i].item() 
 
                     # novel superclass
-                    if super_pred_item == -1:
-                         continue
+                    if super_pred_item == 3:
+                        continue
                          
                     # checking if sub_pred is a valid child of super_pred
                     is_consistent = mapping_consistency_check(super_pred_item, sub_pred_item)
                     
                     if not is_consistent:
-                        final_sub_preds[i] = -1
+                        final_sub_preds[i] = 87
+                        super_preds[i] = 3
 
             return {
                 'superclass': super_preds,
@@ -109,3 +112,82 @@ class DualHeadResNet(nn.Module):
         for param in self.backbone.parameters():
             param.requires_grad = True
         print("Unfrozen ResNet18 layers")
+
+    def train_epoch(self, loader, optimizer, criterion_super, criterion_sub, device):
+        self.train()
+        running_loss = 0.0
+        correct_super = 0
+        correct_sub = 0
+        total = 0
+
+        loop = tqdm(loader, desc="Training")
+        
+        for images, super_labels, sub_labels in loop:
+            images = images.to(device)
+            super_labels = super_labels.to(device)
+            sub_labels = sub_labels.to(device)
+
+            # Forward pass
+            super_logits, sub_logits = self.forward(images)
+
+            # loss (both super and sub heads)
+            loss_super = criterion_super(super_logits, super_labels)
+            loss_sub = criterion_sub(sub_logits, sub_labels)
+            loss = loss_super + loss_sub
+
+            # backward
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # running loss and accuracy
+            running_loss += loss.item()
+            
+            _, predicted_super = torch.max(super_logits.data, 1)
+            _, predicted_sub = torch.max(sub_logits.data, 1)
+            
+            total += super_labels.size(0)
+            correct_super += (predicted_super == super_labels).sum().item()
+            correct_sub += (predicted_sub == sub_labels).sum().item()
+            
+            loop.set_postfix(loss=loss.item())
+
+        epoch_loss = running_loss / len(loader)
+        super_acc = 100 * correct_super / total
+        sub_acc = 100 * correct_sub / total
+        
+        return epoch_loss, super_acc, sub_acc
+
+    def validate_epoch(self, loader, criterion_super, criterion_sub, device):
+        self.eval()
+        running_loss = 0.0
+        correct_super = 0
+        correct_sub = 0
+        total = 0
+
+        with torch.no_grad():
+            for images, super_labels, sub_labels in loader:
+                images = images.to(device)
+                super_labels = super_labels.to(device)
+                sub_labels = sub_labels.to(device)
+
+                super_logits, sub_logits = self.forward(images)
+
+                loss_super = criterion_super(super_logits, super_labels)
+                loss_sub = criterion_sub(sub_logits, sub_labels)
+                loss = loss_super + loss_sub
+
+                running_loss += loss.item()
+
+                _, predicted_super = torch.max(super_logits.data, 1)
+                _, predicted_sub = torch.max(sub_logits.data, 1)
+
+                total += super_labels.size(0)
+                correct_super += (predicted_super == super_labels).sum().item()
+                correct_sub += (predicted_sub == sub_labels).sum().item()
+
+        avg_loss = running_loss / len(loader)
+        super_acc = 100 * correct_super / total
+        sub_acc = 100 * correct_sub / total
+        
+        return avg_loss, super_acc, sub_acc
