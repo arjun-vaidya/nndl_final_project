@@ -2,10 +2,16 @@ from torchvision import transforms
 from src.utils.constants import MEAN, STD
 
 # train or (val or test)
-def get_transforms(split='train'):
+def get_transforms(split='train', upscale=False):
+    
+    transforms_list = []
+    
+    # upscaling for vision transformer
+    if upscale:
+        transforms_list.append(transforms.Resize((224, 224)))
     
     if split == 'train':
-        return transforms.Compose([
+        transforms_list.extend([
             # adding noise
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomRotation(degrees=15),
@@ -19,7 +25,9 @@ def get_transforms(split='train'):
     else:
         # no noise
         # but still need to normalize
-        return transforms.Compose([
+        transforms_list.extend([
             transforms.ToTensor(),
             transforms.Normalize(mean=MEAN, std=STD)
         ])
+        
+    return transforms.Compose(transforms_list)
