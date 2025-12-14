@@ -2,3 +2,4 @@ shared
 /data
 /checkpoints
 prediction.csv
+.env
