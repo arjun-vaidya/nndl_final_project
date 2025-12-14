@@ -1,0 +1,9 @@
+CLIP Pipeline
+
+1. Architecture
+CLIP model to map images and text into a shared embedding space. Using cosine similarity for thresholding. 
+
+2. Strategy
+- Stage 1: Fine-tune CLIP on our training data (Image + Description) to align it with specific class features.
+- Stage 2: Fine-tune on rotated data with a lower learning rate. This teaches the model that rotated views are still valid.
+- Inference: Compute cosine similarity between the test image and the text embeddings of our 87 known classes (with thresholding).

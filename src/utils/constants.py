@@ -9,3 +9,11 @@ NUM_ROTATIONS = 10
 DATA_DIR = 'data'
 TRAIN_IMG_DIR = 'data/train_images'
 AUGMENTED_IMG_DIR = 'data/augmented_train_images'
+
+# Classes
+NUM_SUPERCLASSES = 3
+NUM_SUBCLASSES = 87
+
+# CLIP
+CLIP_MAX_CONTEXT_LENGTH = 77
+CLIP_MODEL_NAME = 'openai/clip-vit-base-patch32'
