@@ -15,9 +15,10 @@ The project is structured as follows
 │   │   ├── dataset.py
 │   │   └── transforms.py
 │   ├── evaluation/    # Evaluation and inference scripts
-│   │   └── main.py
+│   │   ├── main.py
 │   ├── models/        # Model definitions
-│   │   └── resnet_dual_head.py
+│   │   ├── resnet_dual_head.py
+│   │   └── vision_transformer_architecture.py
 │   ├── training/      # Training scripts
 │   │   └── main.py
 │   └── utils/         # Utility functions
@@ -55,7 +56,8 @@ python3 -m src.evaluation.main \
 
 ## Model Performance
 
-| Model Name | Super Acc. | Seen Super Acc. | Unseen Super Acc. | Sub Acc. | Seen Sub Acc. | Unseen Sub Acc. |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **ResNet (Version 1)** | 68.25% | 66.55% | 72.56% | 59.36% | 83.30% | 52.90% |
-| *(Add more)* | ... | ... | ... | ... | ... | ... |
+| Model Name | Super Acc. | Seen Super Acc. | Unseen Super Acc. | Sub Acc. | Seen Sub Acc. | Unseen Sub Acc. | Description |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **ResNet (Version 1)** | 68.25% | 66.55% | 72.56% | 59.36% | 83.30% | 52.90% | Baseline ResNet |
+| **ViT (Approach 1)** | 71.06% | 82.78% | 41.33% | 42.88% | 93.35% | 29.25% | Stage 2 Ep 10 |
+| **ViT (Approach 2)** | 67.36% | 74.63% | 48.92% | 49.14% | 89.61% | 38.21% | Stage 1 Ep 10 |
