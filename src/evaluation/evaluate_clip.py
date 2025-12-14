@@ -102,6 +102,11 @@ def evaluate(args):
     df_res[['image', 'superclass_index', 'subclass_index']].to_csv(args.output, index=False)
     print(f"Saved predictions to {args.output}")
 
+    # results with confidence
+    confidence_output = 'visualize_confidence.csv'
+    df_res[['image', 'superclass_index', 'subclass_index', 'confidence']].to_csv(confidence_output, index=False)
+    print(f"Saved csv with confidence to {confidence_output}")
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate CLIP')
     parser.add_argument('--test_dir', type=str, required=True)
