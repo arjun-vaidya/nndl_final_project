@@ -26,6 +26,9 @@ def train(args):
     
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
+    print(f"Dataset size: {len(dataset)}")
+    print(f"Dataloader size: {len(dataloader)}")
+
     # optimizer
     # ensuring low LR for second step
     lr = args.lr if args.stage == 1 else args.lr / 10
