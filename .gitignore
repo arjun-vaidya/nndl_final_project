@@ -3,9 +3,3 @@ shared
 /checkpoints_resnet
 /checkpoints_vit
 .env
-prediction.csv
-prediction_stg1.csv
-prediction_vit_1.csv
-prediction_resnet.csv 
-prediction_clip_final.csv
-prediction_clip_final_0.30.csv
